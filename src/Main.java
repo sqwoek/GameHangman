@@ -56,11 +56,22 @@ public class Main {
         Arrays.fill(visibleWord, '*');
 
         showWord(visibleWord);
-        while (incorrectGuesses != 0 && correctGuesses != word.length) {
+        while (!(incorrectGuesses == 0 || correctGuesses == word.length)) {
             repeat(word, visibleWord, word.length);
         }
         
         endGame(word);
+    }
+
+    private static boolean addUsedLetter(char letter) {
+        for (int i = 0; i < usedLetters.length; i++) {
+            if(letter == usedLetters[i]) {
+                return false;
+            }
+        }
+
+        usedLetters[indexOfUsedLetters++] = letter;
+        return true;
     }
 
     private static void repeat(char[] word, char[] visibleWord, int length) {
@@ -73,7 +84,11 @@ public class Main {
         }
 
         char letter = line.charAt(0);
-        usedLetters[indexOfUsedLetters++] = letter;
+        if (!addUsedLetter(letter)) {
+            System.out.println("You have already entered this letter!");
+            showUsedLetters();
+            return;
+        }
         boolean isGuessRight = false;
 
         for (int i = 0; i < length; i++) {
