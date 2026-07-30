@@ -77,13 +77,7 @@ public class Main {
     private static void repeat(char[] word, char[] visibleWord, int length) {
         System.out.println();
         System.out.print("Enter a character: ");
-        String line = scanner.nextLine();
-        while (line.length() != 1) {
-            System.out.print("Enter a character: ");
-            line = scanner.nextLine();
-        }
-
-        char letter = line.charAt(0);
+        char letter = validateLetter();
         if (!addUsedLetter(letter)) {
             System.out.println("You have already entered this letter!");
             showUsedLetters();
@@ -108,6 +102,24 @@ public class Main {
         showWord(visibleWord);
         System.out.println();
         showUsedLetters();
+    }
+
+    private static char validateLetter() {
+        String line = scanner.next();
+        while (line.length() != 1) {
+            System.out.println("Enter a character: ");
+            line = scanner.next();
+        }
+        char letter = line.charAt(0);
+        if (letter >= 'A' && letter <= 'Z') {
+            line = line.toLowerCase();
+            return line.charAt(0);
+        }
+        if (letter >= 'a' && letter <= 'z') {
+            return letter;
+        }
+        System.out.print("Enter a letter: ");
+        return validateLetter();
     }
 
     private static void printAttemptsLeft(int incorrectGuesses) {
