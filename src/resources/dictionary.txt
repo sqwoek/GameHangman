@@ -1,0 +1,10 @@
+strawberry
+watermelon
+computer
+keyboard
+monitor
+mouse
+screen
+printer
+internet
+browser

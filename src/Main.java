@@ -1,10 +1,13 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
-    static List<String> dictionary = List.of("cat", "dog", "car", "baglan", "naomi");
+    static List<String> dictionary;
     static Scanner scanner = new Scanner(System.in);
     static Random random = new Random();
     static char[] usedLetters = new char[33];
@@ -13,7 +16,23 @@ public class Main {
     static int correctGuesses = 0;
 
     public static void main(String[] args) {
+        if(!readDictionary()) return;
         startGame();
+    }
+
+    private static boolean readDictionary() {
+        try {
+            dictionary = Files.readAllLines(Path.of("src/resources/dictionary.txt"));
+        } catch (IOException e) {
+            System.out.println("Файл не найден.");
+            return false;
+        }
+
+        if (dictionary.isEmpty()) {
+            System.out.println("Файл со словами пуст.");
+            return false;
+        }
+        return true;
     }
 
     public static void startGame() {
@@ -68,7 +87,7 @@ public class Main {
         if (!isGuessRight) {
             System.out.println("OOps! There is no such letter!");
             incorrectGuesses--;
-            System.out.println(incorrectGuesses + " attempts left");
+            printAttemptsLeft(incorrectGuesses);
             drawHangman();
         }
         showWord(visibleWord);
@@ -76,11 +95,19 @@ public class Main {
         showUsedLetters();
     }
 
+    private static void printAttemptsLeft(int incorrectGuesses) {
+        for (int i = 0; i < incorrectGuesses; i++) {
+            System.out.print("❤\uFE0F");
+        }
+    }
+
     private static void endGame(char[] word) {
         if (incorrectGuesses == 0) {
-            System.out.println("You lose!");
+            System.out.println();
+            System.out.println("You lose!" + " The word was: " + word);
         } else {
             if (correctGuesses == word.length) {
+                System.out.println();
                 System.out.println("Wow! You won!");
             }
         }
@@ -108,6 +135,7 @@ public class Main {
     }
 
     private static void drawHangman() {
+        System.out.println();
         switch (incorrectGuesses) {
             case 5:
                 System.out.println(" ---");
