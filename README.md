@@ -32,4 +32,4 @@ A console implementation of the classic Hangman game. Guess the hidden word one 
 
 
 
-This project was implemented as part of the Java Backend Learning Course by Sergey Zhukov.
+This project was implemented as part of the [Java Backend Learning Course by Sergey Zhukov](https://zhukovsd.github.io/java-backend-learning-course/).
