@@ -43,10 +43,15 @@ public class GameHangman {
     }
 
     public static void showMainMenu() {
-        System.out.println(START_MESSAGE);
-        char letter = readMenuChoice();
-        if(Character.toUpperCase(letter) == START_GAME_CHAR) {
-            startGame();
+        while (true) {
+            System.out.println(START_MESSAGE);
+            char letter = readMenuChoice();
+            if (letter == START_GAME_CHAR) {
+                startGame();
+            }
+            if (letter == END_GAME_CHAR) {
+                return;
+            }
         }
     }
 
@@ -55,10 +60,9 @@ public class GameHangman {
         String secretWord = getSecretWord();
         char[] secretWordMask = createMask(secretWord);
 
-        showWord(secretWordMask);
         while (!isGameOver(secretWordMask)) {
-            processGuess(secretWordMask, secretWord);
             showGameStatus(secretWordMask);
+            processGuess(secretWordMask, secretWord);
         }
         endGame(secretWord, secretWordMask);
     }
@@ -78,8 +82,28 @@ public class GameHangman {
         System.out.println();
         System.out.println(INPUT_LETTER_MESSAGE);
         char letter = readGuessedLetter();
-        isCorrectGuess(secretWordMask, secretWord, letter);
+        if (isUsedLetter(letter)) {
+            System.out.println("You have already entered this letter");
+            return;
+        }
+        if (isCorrectGuess(secretWord, letter)) {
+            usedLetters.add(letter);
+            openLetterInMask(secretWordMask, secretWord, letter);
+            return;
+        }
+        System.out.println("Oops! There is no such letter");
+        remainingAttempts--;
     }
+
+    private static boolean isCorrectGuess(String secretWord, char letter) {
+        for (int i = 0; i < secretWord.length(); i++) {
+            if (letter == secretWord.charAt(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private static void showGameStatus(char[] secretWordMask) {
         drawHangman();
@@ -88,26 +112,12 @@ public class GameHangman {
         showUsedLetters();
     }
 
-    private static void isCorrectGuess(char[] secretWordMask, String secretWord, char letter) {
-        if (isUsedLetter(letter)) {
-            System.out.println("You have already entered this letter");
-            return;
-        }
-        if (!revealMatchLetters(secretWordMask, secretWord, letter)) {
-            System.out.println("Oops! There is no such letter");
-            remainingAttempts--;
-        }
-    }
-
-    private static boolean revealMatchLetters(char[] secretWordMask, String secretWord, char letter) {
-        boolean isLetterInMask = false;
+    private static void openLetterInMask(char[] secretWordMask, String secretWord, char letter) {
         for (int i = 0; i < secretWord.length(); i++) {
             if (letter == secretWord.charAt(i)) {
                 secretWordMask[i] = letter;
-                isLetterInMask = true;
             }
         }
-        return isLetterInMask;
     }
 
 
@@ -130,16 +140,18 @@ public class GameHangman {
     }
 
     private static char readMenuChoice() {
-        String line = scanner.next().toUpperCase();
-        while (line.length() != 1) {
+        while (true) {
+            String line = scanner.next();
+            if (line.length() != 1) {
+                System.out.println(START_MESSAGE);
+                continue;
+            }
+            char letter = Character.toUpperCase(line.charAt(0));
+            if (letter == START_GAME_CHAR || letter == END_GAME_CHAR) {
+                return letter;
+            }
             System.out.println(START_MESSAGE);
-            line = scanner.next().toUpperCase();
         }
-        while (!(line.charAt(0) == START_GAME_CHAR || line.charAt(0) == END_GAME_CHAR)) {
-            System.out.println(START_MESSAGE);
-            line = scanner.next();
-        }
-        return line.charAt(0);
     }
 
     private static void printAttemptsLeft() {
@@ -150,11 +162,7 @@ public class GameHangman {
     }
 
     private static boolean isUsedLetter(char letter) {
-        if (usedLetters.contains(letter)) {
-            return true;
-        }
-        usedLetters.add(letter);
-        return false;
+        return usedLetters.contains(letter);
     }
 
     private static void showUsedLetters() {
@@ -180,7 +188,6 @@ public class GameHangman {
             printWinMessage();
         }
         resetGameState();
-        showMainMenu();
     }
 
     private static boolean isGameOver(char[] secretWordMask) {
