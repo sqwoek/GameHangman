@@ -49,7 +49,7 @@ public class HangmanPicture {
     """
     };
 
-    public static String[] getPictures() {
-        return PICTURES;
+    public static String getPictures(int remainingAttempts) {
+        return PICTURES[remainingAttempts];
     }
 }

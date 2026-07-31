@@ -16,6 +16,7 @@ public class GameHangman {
     private static final int MAX_ATTEMPTS = 6;
     private static final Scanner scanner = new Scanner(System.in);
     private static final Random random = new Random();
+    private static final HangmanPicture hangmanPicture = new HangmanPicture();
     private static List<String> dictionary;
     private static Set<Character> usedLetters = new LinkedHashSet<>();
     private static int remainingAttempts = MAX_ATTEMPTS;
@@ -180,6 +181,6 @@ public class GameHangman {
     }
 
     private static void drawHangman() {
-        System.out.println(HangmanPicture.getPictures()[remainingAttempts]);
+        System.out.println(hangmanPicture.getPictures(remainingAttempts));
     }
 }
