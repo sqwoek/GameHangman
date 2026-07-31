@@ -11,6 +11,7 @@ public class GameHangman {
             START_GAME_CHAR,
             END_GAME_CHAR
     );
+    private static final char HIDDEN_LETTER_SYMBOL = '*';
     private static final String INPUT_LETTER_MESSAGE = "\nEnter a letter: ";
     private static final String DICTIONARY_PATH = "src/resources/dictionary.txt";
     private static final int MAX_ATTEMPTS = 6;
@@ -23,7 +24,11 @@ public class GameHangman {
     private static int correctGuesses = 0;
 
     public static void main(String[] args) {
-        showMainMenu();
+        try {
+            showMainMenu();
+        } catch (RuntimeException ex) {
+            System.out.println("Error loading file " + ex.getMessage());
+        }
     }
 
     private static void readDictionary() {
@@ -41,80 +46,97 @@ public class GameHangman {
 
     public static void showMainMenu() {
         System.out.println(START_MESSAGE);
-        char letter = validateMenuLetter();
+        char letter = readMenuChoice();
         if(Character.toUpperCase(letter) == START_GAME_CHAR) {
-            try {
-                readDictionary();
-            } catch (RuntimeException ex) {
-                System.out.println("Error loading file " + ex.getMessage());
-                return;
-            }
             startGame();
         }
     }
 
     public static void startGame() {
-        int wordIndex = random.nextInt(dictionary.size());
-        char[] word = dictionary.get(wordIndex).toCharArray();
-        char[] maskedWord = new char[word.length];
-        Arrays.fill(maskedWord, ('*'));
-        showWord(maskedWord);
-        while (!(remainingAttempts == 0 || correctGuesses == word.length)) {
-            guessLetter(word, maskedWord);
+        readDictionary();
+        String secretWord = getSecretWord();
+        char[] secretWordMask = createMask(secretWord);
+
+        showWord(secretWordMask);
+        while (!isGameOver(secretWord)) {
+            processGuess(secretWordMask, secretWord);
+            showGameStatus(secretWordMask);
         }
-        endGame(word);
+        endGame(secretWord);
     }
 
-    private static void guessLetter(char[] word, char[] maskedWord) {
+    private static boolean isGameOver(String secretWord) {
+        return remainingAttempts == 0 || correctGuesses == secretWord.length();
+    }
+
+    private static char[] createMask(String secretWord) {
+        char[] secretWordMask = new char[secretWord.length()];
+        Arrays.fill(secretWordMask, HIDDEN_LETTER_SYMBOL);
+        return secretWordMask;
+    }
+
+    private static String getSecretWord() {
+        int wordIndex = random.nextInt(dictionary.size());
+        return dictionary.get(wordIndex);
+    }
+
+    private static void processGuess(char[] maskedWord, String word) {
         System.out.println();
         System.out.println(INPUT_LETTER_MESSAGE);
-        char letter = validateGuessedLetter();
-        if (isUsedLetter(letter)) {
-            System.out.println("You have already entered this letter.");
-            showUsedLetters();
-            return;
-        }
+        char letter = readGuessedLetter();
+        isCorrectGuess(maskedWord, word, letter);
+    }
 
-        if (!isCorrectGuess(maskedWord, word, letter)) {
-            System.out.println("OOps! There is no such letter.");
-            remainingAttempts--;
-            printAttemptsLeft();
-            drawHangman();
-        }
-        showWord(maskedWord);
+    private static void showGameStatus(char[] secretWordMask) {
+        drawHangman();
+        showWord(secretWordMask);
+        printAttemptsLeft();
         showUsedLetters();
     }
 
-    private static boolean isCorrectGuess(char[] maskedWord, char[] word, char letter) {
-        boolean correctGuess = false;
-        for (int i = 0; i < word.length; i++) {
-            if (letter == word[i]) {
+    private static void isCorrectGuess(char[] maskedWord, String word, char letter) {
+        if (isUsedLetter(letter)) {
+            System.out.println("You have already entered this letter");
+            return;
+        }
+        if (!revealMatchLetters(maskedWord, word, letter)) {
+            System.out.println("Oops! There is no such letter");
+            remainingAttempts--;
+        }
+    }
+
+    private static boolean revealMatchLetters(char[] maskedWord, String word, char letter) {
+        boolean isLetterInMask = false;
+        for (int i = 0; i < word.length(); i++) {
+            if (letter == word.charAt(i)) {
                 maskedWord[i] = letter;
                 correctGuesses++;
-                correctGuess = true;
+                isLetterInMask = true;
             }
         }
-        return correctGuess;
+        return isLetterInMask;
     }
 
-    private static char validateGuessedLetter() {
-        String line = scanner.next();
-        while (line.length() != 1) {
+
+    private static char readGuessedLetter() {
+        while (true) {
+            String line = scanner.next();
+            while (line.length() != 1) {
+                System.out.println();
+                System.out.println(INPUT_LETTER_MESSAGE);
+                line = scanner.next();
+            }
+            line = line.toLowerCase();
+            char letter = line.charAt(0);
+            if (letter >= 'a' && letter <= 'z') {
+                return letter;
+            }
             System.out.println();
             System.out.println(INPUT_LETTER_MESSAGE);
-            line = scanner.next();
         }
-        line = line.toLowerCase();
-        char letter = line.charAt(0);
-        if (letter >= 'a' && letter <= 'z') {
-            return letter;
-        }
-        System.out.println();
-        System.out.print(INPUT_LETTER_MESSAGE);
-        return validateGuessedLetter();
     }
 
-    private static char validateMenuLetter() {
+    private static char readMenuChoice() {
         String line = scanner.next().toUpperCase();
         while (line.length() != 1) {
             System.out.println(START_MESSAGE);
@@ -128,10 +150,10 @@ public class GameHangman {
     }
 
     private static void printAttemptsLeft() {
+        System.out.println();
         for (int i = 0; i < remainingAttempts; i++) {
             System.out.print("❤\uFE0F");
         }
-        System.out.println();
     }
 
     private static boolean isUsedLetter(char letter) {
@@ -157,12 +179,12 @@ public class GameHangman {
         }
     }
 
-    private static void endGame(char[] word) {
+    private static void endGame(String word) {
         if (remainingAttempts == 0) {
             printLoseMessage();
-            System.out.println("The word was - " + new String(word));
+            System.out.println("The word was - " + word);
         }
-        if (correctGuesses == word.length) {
+        if (correctGuesses == word.length()) {
             printWinMessage();
         }
         resetGameState();
@@ -170,11 +192,11 @@ public class GameHangman {
     }
 
     private static void printLoseMessage() {
-        System.out.println("You lost!");
+        System.out.println("\nYou lost!");
     }
 
     private static void printWinMessage() {
-        System.out.println("Congrats! You won.");
+        System.out.println("\nCongrats! You won.");
     }
 
     private static void resetGameState() {
