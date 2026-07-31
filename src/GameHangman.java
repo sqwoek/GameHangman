@@ -23,32 +23,32 @@ public class GameHangman {
     private static int correctGuesses = 0;
 
     public static void main(String[] args) {
-        try {
-            readDictionary();
-        } catch (IOException | IllegalStateException ex) {
-            System.out.println("Error loading file: " + ex.getMessage());
-            return;
-        }
         showMainMenu();
     }
 
-    private static void readDictionary() throws IOException{
+    private static void readDictionary() {
         Path dictionaryPath = Path.of(DICTIONARY_PATH);
         try {
             dictionary = Files.readAllLines(dictionaryPath);
         } catch (IOException e) {
-            throw new IOException("Couldn't find a file in " + dictionaryPath.toAbsolutePath());
+            throw new RuntimeException("Dictionary file not found: " + dictionaryPath.toAbsolutePath());
         }
 
         if (dictionary.isEmpty()) {
-            throw new IllegalStateException("Dictionary is empty.");
+            throw new IllegalStateException("Dictionary is empty: " + dictionaryPath.toAbsolutePath());
         }
     }
 
     public static void showMainMenu() {
         System.out.println(START_MESSAGE);
         char letter = validateMenuLetter();
-        if(letter == START_GAME_CHAR) {
+        if(Character.toUpperCase(letter) == START_GAME_CHAR) {
+            try {
+                readDictionary();
+            } catch (RuntimeException ex) {
+                System.out.println("Error loading file " + ex.getMessage());
+                return;
+            }
             startGame();
         }
     }
@@ -66,6 +66,7 @@ public class GameHangman {
     }
 
     private static void guessLetter(char[] word, char[] maskedWord) {
+        System.out.println();
         System.out.println(INPUT_LETTER_MESSAGE);
         char letter = validateGuessedLetter();
         if (isUsedLetter(letter)) {
@@ -99,6 +100,7 @@ public class GameHangman {
     private static char validateGuessedLetter() {
         String line = scanner.next();
         while (line.length() != 1) {
+            System.out.println();
             System.out.println(INPUT_LETTER_MESSAGE);
             line = scanner.next();
         }
@@ -107,6 +109,7 @@ public class GameHangman {
         if (letter >= 'a' && letter <= 'z') {
             return letter;
         }
+        System.out.println();
         System.out.print(INPUT_LETTER_MESSAGE);
         return validateGuessedLetter();
     }
